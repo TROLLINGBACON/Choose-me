@@ -1,0 +1,203 @@
+-- Services
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AdminPanel"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+mainFrame.BackgroundColor3 = Color3.fromRGB(46, 52, 64)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Make GUI Draggable
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Admin Panel"
+titleLabel.TextColor3 = Color3.fromRGB(236, 239, 244)
+titleLabel.Font = Enum.Font.SourceSans
+titleLabel.TextSize = 24
+titleLabel.Parent = mainFrame
+
+-- Player Input
+local playerLabel = Instance.new("TextLabel")
+playerLabel.Size = UDim2.new(0.5, -10, 0, 50)
+playerLabel.Position = UDim2.new(0, 10, 0, 60)
+playerLabel.BackgroundTransparency = 1
+playerLabel.Text = "Enter Player Name:"
+playerLabel.TextColor3 = Color3.fromRGB(236, 239, 244)
+playerLabel.Font = Enum.Font.SourceSans
+playerLabel.TextSize = 18
+playerLabel.TextXAlignment = Enum.TextXAlignment.Left
+playerLabel.Parent = mainFrame
+
+local playerInput = Instance.new("TextBox")
+playerInput.Size = UDim2.new(0.5, -10, 0, 50)
+playerInput.Position = UDim2.new(0.5, 0, 0, 60)
+playerInput.BackgroundColor3 = Color3.fromRGB(59, 66, 82)
+playerInput.TextColor3 = Color3.fromRGB(236, 239, 244)
+playerInput.Font = Enum.Font.SourceSans
+playerInput.TextSize = 18
+playerInput.PlaceholderText = "Player Name"
+playerInput.Parent = mainFrame
+
+-- Function to create buttons with styling and animations
+local function createButton(text, position, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0.5, -10, 0, 50)
+    button.Position = position
+    button.BackgroundColor3 = Color3.fromRGB(59, 66, 82)
+    button.TextColor3 = Color3.fromRGB(236, 239, 244)
+    button.Font = Enum.Font.SourceSans
+    button.TextSize = 18
+    button.Text = text
+    button.Parent = mainFrame
+
+    local function onEnter()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(72, 82, 109)}):Play()
+    end
+
+    local function onLeave()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(59, 66, 82)}):Play()
+    end
+
+    button.MouseEnter:Connect(onEnter)
+    button.MouseLeave:Connect(onLeave)
+    button.MouseButton1Click:Connect(callback)
+end
+
+local function getPlayer()
+    local playerName = playerInput.Text
+    local player = Players:FindFirstChild(playerName)
+    if not player then
+        warn("Player not found")
+    end
+    return player
+end
+
+createButton("Flight", UDim2.new(0, 10, 0, 120), function()
+    local player = getPlayer()
+    if player then
+        -- Implement flight functionality
+        player.Character.HumanoidRootPart.Anchored = true
+        wait(1)
+        player.Character.HumanoidRootPart.Anchored = false
+    end
+end)
+
+createButton("Kick", UDim2.new(0.5, 0, 0, 120), function()
+    local player = getPlayer()
+    if player then
+        player:Kick("You have been kicked by an admin.")
+    end
+end)
+
+createButton("View", UDim2.new(0, 10, 0, 180), function()
+    local player = getPlayer()
+    if player then
+        -- View logic here
+        print("Viewing " .. player.Name)
+    end
+end)
+
+createButton("Unflight", UDim2.new(0.5, 0, 0, 180), function()
+    local player = getPlayer()
+    if player then
+        -- Implement unflight functionality
+        player.Character.HumanoidRootPart.Anchored = false
+    end
+end)
+
+createButton("Gun", UDim2.new(0, 10, 0, 240), function()
+    local player = getPlayer()
+    if player then
+        -- Implement gun functionality
+        print(player.Name .. " now has a gun!")
+    end
+end)
+
+createButton("Kill", UDim2.new(0.5, 0, 0, 240), function()
+    local player = getPlayer()
+    if player then
+        -- Kill logic here
+        player.Character.Humanoid:TakeDamage(player.Character.Humanoid.MaxHealth)
+    end
+end)
+
+-- Playful actions
+createButton("Fake Error", UDim2.new(0, 10, 0, 300), function()
+    warn("A wild error appeared!")
+end)
+
+createButton("Random Color Change", UDim2.new(0.5, 0, 0, 300), function()
+    mainFrame.BackgroundColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+end)
+
+-- Quit button
+local quitButton = Instance.new("TextButton")
+quitButton.Size = UDim2.new(1, -20, 0, 50)
+quitButton.Position = UDim2.new(0, 10, 1, -60)
+quitButton.BackgroundColor3 = Color3.fromRGB(59, 66, 82)
+quitButton.TextColor3 = Color3.fromRGB(236, 239, 244)
+quitButton.Font = Enum.Font.SourceSans
+quitButton.TextSize = 18
+quitButton.Text = "Quit"
+quitButton.Parent = mainFrame
+
+local function quitEnter()
+    TweenService:Create(quitButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(72, 82, 109)}):Play()
+end
+
+local function quitLeave()
+    TweenService:Create(quitButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(59, 66, 82)}):Play()
+end
+
+quitButton.MouseEnter:Connect(quitEnter)
+quitButton.MouseLeave:Connect(quitLeave)
+
+quitButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
